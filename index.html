@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MindProbe - Adaptive Assessment</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            🧠
+            <span>MindProbe</span>
+        </div>
+
+        <nav>
+
+            <button class="nav-item active" data-page="dashboard">
+                🏠 Dashboard
+            </button>
+
+            <button class="nav-item" data-page="practice">
+                🎯 Practice
+            </button>
+
+            <button class="nav-item" data-page="competency">
+                📊 Competency
+            </button>
+
+            <button class="nav-item" data-page="resources">
+                📚 Resources
+            </button>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <button class="nav-item" id="resetApp">
+                🔄 Reset Progress
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+
+    <main class="main-content">
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+            <div>
+                <h2 id="pageTitle">Dashboard</h2>
+                <p id="welcomeText">Welcome back to MindProbe</p>
+            </div>
+
+            <div class="profile">
+
+                <div class="profile-avatar">
+                    M
+                </div>
+
+                <div>
+                    <strong id="studentName">Student</strong>
+                    <small id="studentLevel">College Level</small>
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =========================
+             DASHBOARD
+        ========================== -->
+
+        <section id="dashboardPage" class="page active-page">
+
+            <div class="hero-card">
+
+                <div>
+
+                    <span class="badge">
+                        AI-Powered Assessment
+                    </span>
+
+                    <h1>
+                        Diagnose your learning.
+                        <br>
+                        Don't just measure it.
+                    </h1>
+
+                    <p>
+                        MindProbe adapts questions based on your
+                        answers, confidence, reasoning and error patterns.
+                    </p>
+
+                    <button class="primary-btn" id="startPracticeBtn">
+                        Start Practice →
+                    </button>
+
+                </div>
+
+                <div class="hero-icon">
+                    🧠
+                </div>
+
+            </div>
+
+
+            <!-- STAT CARDS -->
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+
+                    <span class="stat-icon">🎯</span>
+
+                    <div>
+                        <p>Questions Answered</p>
+                        <h2 id="questionsAnswered">0</h2>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span class="stat-icon">🔥</span>
+
+                    <div>
+                        <p>Current Streak</p>
+                        <h2 id="currentStreak">0 days</h2>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span class="stat-icon">📈</span>
+
+                    <div>
+                        <p>Overall Competency</p>
+                        <h2 id="overallCompetency">0%</h2>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span class="stat-icon">⏱️</span>
+
+                    <div>
+                        <p>Daily Target</p>
+                        <h2 id="dailyTarget">15 min</h2>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- DASHBOARD CONTENT -->
+
+            <div class="two-column">
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div>
+                            <h3>Competency Overview</h3>
+                            <p>Your current understanding by concept</p>
+                        </div>
+
+                    </div>
+
+                    <canvas id="competencyChart"></canvas>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div>
+                            <h3>Current Learning Gap</h3>
+                            <p>MindProbe's diagnosis</p>
+                        </div>
+
+                    </div>
+
+                    <div class="gap-box">
+
+                        <div class="gap-icon">
+                            🔴
+                        </div>
+
+                        <div>
+
+                            <h3 id="mainGap">
+                                No learning gap detected yet
+                            </h3>
+
+                            <p id="gapDescription">
+                                Complete some practice questions
+                                to receive a diagnosis.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        class="secondary-btn"
+                        id="viewCompetencyBtn">
+                        View Competency →
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             PRACTICE PAGE
+        ========================== -->
+
+        <section id="practicePage" class="page">
+
+            <!-- ONBOARDING -->
+
+            <div id="onboardingScreen" class="card onboarding-card">
+
+                <div class="step-indicator">
+                    Step <span id="onboardingStepNumber">1</span> of 3
+                </div>
+
+
+                <!-- STEP 1 -->
+
+                <div class="onboarding-step active-step" id="step1">
+
+                    <span class="large-icon">🎓</span>
+
+                    <h1>What level are you practising for?</h1>
+
+                    <p>
+                        This helps MindProbe choose appropriate
+                        question difficulty and style.
+                    </p>
+
+                    <div class="option-grid">
+
+                        <button class="option-btn" data-level="School">
+                            <span>🏫</span>
+                            <strong>School Level</strong>
+                            <small>Class 6 - 12</small>
+                        </button>
+
+                        <button class="option-btn" data-level="College">
+                            <span>🎓</span>
+                            <strong>College Level</strong>
+                            <small>University studies</small>
+                        </button>
+
+                        <button class="option-btn" data-level="Competitive">
+                            <span>🏆</span>
+                            <strong>Competitive Exam</strong>
+                            <small>JEE, NEET, UPSC etc.</small>
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- STEP 2 -->
+
+                <div class="onboarding-step" id="step2">
+
+                    <span class="large-icon">⏱️</span>
+
+                    <h1>How much time can you give daily?</h1>
+
+                    <p>
+                        MindProbe will size your practice session
+                        according to your available time.
+                    </p>
+
+                    <div class="option-grid">
+
+                        <button class="option-btn" data-time="15 min">
+                            <span>⚡</span>
+                            <strong>15 minutes</strong>
+                            <small>Quick practice</small>
+                        </button>
+
+                        <button class="option-btn" data-time="30 min">
+                            <span>⏰</span>
+                            <strong>30 minutes</strong>
+                            <small>Regular practice</small>
+                        </button>
+
+                        <button class="option-btn" data-time="1 hour">
+                            <span>🔥</span>
+                            <strong>1 hour</strong>
+                            <small>Deep practice</small>
+                        </button>
+
+                        <button class="option-btn" data-time="2+ hours">
+                            <span>🚀</span>
+                            <strong>2+ hours</strong>
+                            <small>Intensive practice</small>
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- STEP 3 -->
+
+                <div class="onboarding-step" id="step3">
+
+                    <span class="large-icon">📚</span>
+
+                    <h1>What would you like to practise?</h1>
+
+                    <p>
+                        Choose a topic or let MindProbe decide
+                        based on your learning history.
+                    </p>
+
+                    <div class="topic-options">
+
+                        <button class="topic-card" data-topic="Algebra">
+                            <span>➗</span>
+                            <strong>Algebra</strong>
+                            <small>Equations, variables & expressions</small>
+                        </button>
+
+                        <button class="topic-card" data-topic="Functions">
+                            <span>ƒ(x)</span>
+                            <strong>Functions</strong>
+                            <small>Parameters, arguments & functions</small>
+                        </button>
+
+                        <button class="topic-card" data-topic="Recursion">
+                            <span>🔁</span>
+                            <strong>Recursion</strong>
+                            <small>Recursive programming concepts</small>
+                        </button>
+
+                        <button class="topic-card" data-topic="Variables">
+                            <span>📦</span>
+                            <strong>Variables</strong>
+                            <small>Variables and data handling</small>
+                        </button>
+
+                        <button class="topic-card adaptive-topic">
+                            <span>🧠</span>
+                            <strong>Let MindProbe Choose</strong>
+                            <small>Based on your weak areas</small>
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- QUIZ -->
+
+            <div id="quizScreen" class="quiz-screen hidden">
+
+                <div class="quiz-header">
+
+                    <div>
+
+                        <span class="badge">
+                            Adaptive Assessment
+                        </span>
+
+                        <h2 id="quizTopic">
+                            Functions
+                        </h2>
+
+                    </div>
+
+                    <div class="question-counter">
+                        Question
+                        <strong id="questionNumber">1</strong>
+                        / 5
+                    </div>
+
+                </div>
+
+
+                <!-- PROGRESS -->
+
+                <div class="progress-bar">
+
+                    <div id="quizProgress"></div>
+
+                </div>
+
+
+                <!-- QUESTION CARD -->
+
+                <div class="card question-card">
+
+                    <span class="question-type">
+                        Conceptual Question
+                    </span>
+
+                    <h1 id="questionText">
+                        Loading question...
+                    </h1>
+
+
+                    <div id="answerOptions" class="answer-options">
+                    </div>
+
+
+                    <!-- REASONING -->
+
+                    <div class="reasoning-section">
+
+                        <label>
+                            💭 Explain your reasoning
+                        </label>
+
+                        <textarea
+                            id="reasoningInput"
+                            placeholder="Tell us how you approached this problem..."
+                        ></textarea>
+
+                    </div>
+
+
+                    <!-- CONFIDENCE -->
+
+                    <div class="confidence-section">
+
+                        <label>
+                            How confident are you?
+                        </label>
+
+                        <div class="confidence-buttons">
+
+                            <button
+                                class="confidence-btn"
+                                data-confidence="1">
+                                😟
+                                <span>Not sure</span>
+                            </button>
+
+                            <button
+                                class="confidence-btn"
+                                data-confidence="2">
+                                😐
+                                <span>A little</span>
+                            </button>
+
+                            <button
+                                class="confidence-btn"
+                                data-confidence="3">
+                                🙂
+                                <span>Moderate</span>
+                            </button>
+
+                            <button
+                                class="confidence-btn"
+                                data-confidence="4">
+                                😎
+                                <span>Confident</span>
+                            </button>
+
+                            <button
+                                class="confidence-btn"
+                                data-confidence="5">
+                                🚀
+                                <span>Very confident</span>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        id="submitAnswerBtn"
+                        class="primary-btn full-btn">
+
+                        Submit Answer →
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- RESULT -->
+
+            <div id="resultScreen" class="hidden">
+
+                <div class="card result-card">
+
+                    <div class="result-icon">
+                        <span id="resultEmoji">🎯</span>
+                    </div>
+
+                    <h1 id="resultTitle">
+                        Answer Analyzed
+                    </h1>
+
+                    <p id="resultMessage">
+                        MindProbe analyzed your answer.
+                    </p>
+
+
+                    <div class="analysis-grid">
+
+                        <div>
+                            <span>Answer</span>
+                            <strong id="resultCorrectness">
+                                Correct
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Confidence</span>
+                            <strong id="resultConfidence">
+                                High
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Error Pattern</span>
+                            <strong id="resultError">
+                                None
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <div class="next-question-box">
+
+                        <span>🧠 MindProbe recommends</span>
+
+                        <h3 id="nextRecommendation">
+                            Continue with a slightly harder question.
+                        </h3>
+
+                    </div>
+
+
+                    <button
+                        class="primary-btn"
+                        id="nextQuestionBtn">
+
+                        Next Question →
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             COMPETENCY PAGE
+        ========================== -->
+
+        <section id="competencyPage" class="page">
+
+            <div class="page-heading">
+
+                <div>
+
+                    <span class="badge">
+                        Your Learning Profile
+                    </span>
+
+                    <h1>Competency Dashboard</h1>
+
+                    <p>
+                        Understand what you know and where you need help.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="two-column">
+
+                <div class="card">
+
+                    <h3>Competency by Concept</h3>
+
+                    <canvas id="competencyRadar"></canvas>
+
+                </div>
+
+
+                <div class="card">
+
+                    <h3>Learning Diagnosis</h3>
+
+                    <div class="diagnosis-item">
+
+                        <span>🔴</span>
+
+                        <div>
+                            <small>Main Learning Gap</small>
+                            <h3 id="diagnosisGap">
+                                Function Parameters
+                            </h3>
+                        </div>
+
+                    </div>
+
+
+                    <div class="diagnosis-item">
+
+                        <span>⚠️</span>
+
+                        <div>
+                            <small>Error Pattern</small>
+                            <h3 id="diagnosisError">
+                                Confusing parameters and arguments
+                            </h3>
+                        </div>
+
+                    </div>
+
+
+                    <div class="diagnosis-item">
+
+                        <span>🎯</span>
+
+                        <div>
+                            <small>Recommended</small>
+                            <h3>
+                                3 targeted practice questions
+                            </h3>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    <div>
+                        <h3>Concept Strength</h3>
+                        <p>Based on your assessment evidence</p>
+                    </div>
+
+                </div>
+
+                <div id="conceptList">
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             RESOURCES PAGE
+        ========================== -->
+
+        <section id="resourcesPage" class="page">
+
+            <div class="page-heading">
+
+                <span class="badge">
+                    Personalized Learning
+                </span>
+
+                <h1>Recommended Resources</h1>
+
+                <p>
+                    Resources based on your diagnosed learning gaps.
+                </p>
+
+            </div>
+
+
+            <div class="resources-grid">
+
+                <div class="resource-card">
+
+                    <div class="resource-icon">
+                        🎓
+                    </div>
+
+                    <div>
+
+                        <span class="resource-type">
+                            COURSE
+                        </span>
+
+                        <h3>Khan Academy</h3>
+
+                        <p>
+                            Learn the basics of functions,
+                            parameters and arguments.
+                        </p>
+
+                        <a href="https://www.khanacademy.org/"
+                           target="_blank">
+                            Explore resource →
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <div class="resource-card">
+
+                    <div class="resource-icon">
+                        📺
+                    </div>
+
+                    <div>
+
+                        <span class="resource-type">
+                            VIDEO
+                        </span>
+
+                        <h3>YouTube</h3>
+
+                        <p>
+                            Find targeted explanations for
+                            your current learning gap.
+                        </p>
+
+                        <a href="https://www.youtube.com/"
+                           target="_blank">
+                            Watch videos →
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <div class="resource-card">
+
+                    <div class="resource-icon">
+                        🏫
+                    </div>
+
+                    <div>
+
+                        <span class="resource-type">
+                            COLLEGE
+                        </span>
+
+                        <h3>NPTEL</h3>
+
+                        <p>
+                            Explore university-level courses
+                            and lectures.
+                        </p>
+
+                        <a href="https://nptel.ac.in/"
+                           target="_blank">
+                            Explore NPTEL →
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <div class="resource-card">
+
+                    <div class="resource-icon">
+                        📖
+                    </div>
+
+                    <div>
+
+                        <span class="resource-type">
+                            LEARNING
+                        </span>
+
+                        <h3>SWAYAM</h3>
+
+                        <p>
+                            Access online courses for
+                            structured learning.
+                        </p>
+
+                        <a href="https://swayam.gov.in/"
+                           target="_blank">
+                            Explore SWAYAM →
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script
+    type="module"
+    src="app.js">
+</script>
+</body>
+
+</html>

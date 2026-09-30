@@ -1,0 +1,2222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MindProbe Question Importer</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            color: #222;
+        }
+
+        p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #3730a3;
+        }
+
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            line-height: 1.6;
+        }
+
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>MindProbe Question Importer</h1>
+
+    <p>
+        This page will import <strong>100 questions</strong>
+        into the Firestore <strong>questionBank</strong> collection.
+    </p>
+
+    <button id="importButton">
+        Import 100 Questions
+    </button>
+
+    <div id="status">
+        Ready to import.
+    </div>
+
+</div>
+
+
+<script type="module">
+
+    /* =========================================================
+       FIREBASE IMPORTS
+       ========================================================= */
+
+    import { db, auth } from "./firebase.js";
+
+    import {
+        signInAnonymously
+    } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+    import {
+        doc,
+        writeBatch
+    } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
+
+    /* =========================================================
+       QUESTION HELPER
+       ========================================================= */
+
+    function createQuestion(
+        id,
+        level,
+        topic,
+        subtopic,
+        difficulty,
+        skill,
+        prerequisite,
+        question,
+        options,
+        correctAnswer,
+        explanation
+    ) {
+        return {
+            id,
+            level,
+            topic,
+            subtopic,
+            difficulty,
+            questionType: "MCQ",
+            skill,
+            prerequisite,
+            question,
+            options,
+            correctAnswer,
+            explanation,
+            active: true
+        };
+    }
+
+
+    /* =========================================================
+       100 MINDPROBE QUESTIONS
+       ========================================================= */
+
+    const questions = [
+
+        /* =====================================================
+           SCHOOL QUESTIONS 1 - 34
+           ===================================================== */
+
+        createQuestion(
+            "school_001",
+            "School",
+            "Variables",
+            "Basics",
+            "Easy",
+            "Understanding variables",
+            "None",
+            "What is a variable in programming?",
+            [
+                "A named storage location for a value",
+                "A type of computer",
+                "A programming language",
+                "A loop"
+            ],
+            0,
+            "A variable is a named storage location used to hold a value."
+        ),
+
+        createQuestion(
+            "school_002",
+            "School",
+            "Variables",
+            "Assignment",
+            "Easy",
+            "Variable assignment",
+            "Variables",
+            "What value will x contain after this statement? x = 10",
+            [
+                "0",
+                "5",
+                "10",
+                "20"
+            ],
+            2,
+            "The assignment statement stores 10 in x."
+        ),
+
+        createQuestion(
+            "school_003",
+            "School",
+            "Variables",
+            "Data Types",
+            "Easy",
+            "Identifying data types",
+            "Variables",
+            "Which data type is normally used to store a whole number?",
+            [
+                "String",
+                "Integer",
+                "Boolean",
+                "Character"
+            ],
+            1,
+            "An integer represents a whole number."
+        ),
+
+        createQuestion(
+            "school_004",
+            "School",
+            "Variables",
+            "Strings",
+            "Easy",
+            "Understanding strings",
+            "Variables",
+            "Which value is a string?",
+            [
+                "25",
+                "3.14",
+                "Hello",
+                "true"
+            ],
+            2,
+            "Hello is a sequence of characters, so it is a string."
+        ),
+
+        createQuestion(
+            "school_005",
+            "School",
+            "Variables",
+            "Updating Values",
+            "Medium",
+            "Tracking variable values",
+            "Variables",
+            "What is the value of x after x = 5 followed by x = 8?",
+            [
+                "5",
+                "8",
+                "13",
+                "0"
+            ],
+            1,
+            "The second assignment replaces the previous value with 8."
+        ),
+
+        createQuestion(
+            "school_006",
+            "School",
+            "Variables",
+            "Expressions",
+            "Medium",
+            "Evaluating expressions",
+            "Variables",
+            "If x = 4 and y = 3, what is x + y?",
+            [
+                "1",
+                "7",
+                "12",
+                "43"
+            ],
+            1,
+            "4 + 3 equals 7."
+        ),
+
+        createQuestion(
+            "school_007",
+            "School",
+            "Variables",
+            "Swapping",
+            "Hard",
+            "Variable manipulation",
+            "Variables",
+            "What is commonly needed to swap the values of two variables?",
+            [
+                "A temporary variable",
+                "A loop only",
+                "A condition only",
+                "A comment"
+            ],
+            0,
+            "A temporary variable can store one value while the other variable is changed."
+        ),
+
+        createQuestion(
+            "school_008",
+            "School",
+            "Conditions",
+            "If Statement",
+            "Easy",
+            "Understanding conditions",
+            "Variables",
+            "What is the main purpose of an if statement?",
+            [
+                "To repeat code",
+                "To make a decision based on a condition",
+                "To store data",
+                "To define a variable"
+            ],
+            1,
+            "An if statement executes code when a specified condition is true."
+        ),
+
+        createQuestion(
+            "school_009",
+            "School",
+            "Conditions",
+            "Comparison",
+            "Easy",
+            "Comparison operators",
+            "Variables",
+            "What does x > 5 check?",
+            [
+                "Whether x is less than 5",
+                "Whether x equals 5",
+                "Whether x is greater than 5",
+                "Whether x is zero"
+            ],
+            2,
+            "The > operator checks whether the left value is greater than the right value."
+        ),
+
+        createQuestion(
+            "school_010",
+            "School",
+            "Conditions",
+            "If Else",
+            "Easy",
+            "If-else logic",
+            "Conditions",
+            "What does an else block normally execute when the if condition is false?",
+            [
+                "Nothing",
+                "The else code",
+                "The program stops permanently",
+                "The variable is deleted"
+            ],
+            1,
+            "The else block runs when its associated if condition is false."
+        ),
+
+        createQuestion(
+            "school_011",
+            "School",
+            "Conditions",
+            "Equality",
+            "Easy",
+            "Equality comparison",
+            "Variables",
+            "Which operator commonly checks whether two values are equal?",
+            [
+                "=",
+                "==",
+                ">",
+                "%"
+            ],
+            1,
+            "The == operator is commonly used for equality comparison."
+        ),
+
+        createQuestion(
+            "school_012",
+            "School",
+            "Conditions",
+            "Logical Operators",
+            "Medium",
+            "Logical AND",
+            "Conditions",
+            "What is the result of true AND false?",
+            [
+                "true",
+                "false",
+                "1",
+                "undefined"
+            ],
+            1,
+            "AND requires both conditions to be true."
+        ),
+
+        createQuestion(
+            "school_013",
+            "School",
+            "Conditions",
+            "Logical Operators",
+            "Medium",
+            "Logical OR",
+            "Conditions",
+            "What is the result of true OR false?",
+            [
+                "true",
+                "false",
+                "0",
+                "undefined"
+            ],
+            0,
+            "OR is true when at least one condition is true."
+        ),
+
+        createQuestion(
+            "school_014",
+            "School",
+            "Conditions",
+            "Logical NOT",
+            "Medium",
+            "Logical NOT",
+            "Conditions",
+            "What is the result of NOT true?",
+            [
+                "true",
+                "false",
+                "1",
+                "undefined"
+            ],
+            1,
+            "NOT reverses a Boolean value, so NOT true is false."
+        ),
+
+        createQuestion(
+            "school_015",
+            "School",
+            "Loops",
+            "For Loop",
+            "Easy",
+            "Understanding loops",
+            "Variables",
+            "What is the main purpose of a loop?",
+            [
+                "To repeat instructions",
+                "To delete a program",
+                "To create a computer",
+                "To stop all code"
+            ],
+            0,
+            "Loops repeat a block of instructions."
+        ),
+
+        createQuestion(
+            "school_016",
+            "School",
+            "Loops",
+            "Counting",
+            "Easy",
+            "Loop counting",
+            "Loops",
+            "How many times does a loop from 1 to 5 usually execute if both endpoints are included?",
+            [
+                "4",
+                "5",
+                "6",
+                "10"
+            ],
+            1,
+            "The values 1, 2, 3, 4 and 5 give five iterations."
+        ),
+
+        createQuestion(
+            "school_017",
+            "School",
+            "Loops",
+            "While Loop",
+            "Easy",
+            "Understanding while loops",
+            "Conditions",
+            "A while loop continues executing while what is true?",
+            [
+                "The condition",
+                "The computer is on",
+                "The program name",
+                "The keyboard is pressed"
+            ],
+            0,
+            "A while loop continues as long as its condition remains true."
+        ),
+
+        createQuestion(
+            "school_018",
+            "School",
+            "Loops",
+            "Loop Counter",
+            "Medium",
+            "Tracking loop variables",
+            "Variables",
+            "If count starts at 0 and increases by 1 three times, what is count?",
+            [
+                "1",
+                "2",
+                "3",
+                "4"
+            ],
+            2,
+            "Starting at 0 and adding 1 three times gives 3."
+        ),
+
+        createQuestion(
+            "school_019",
+            "School",
+            "Loops",
+            "Infinite Loop",
+            "Medium",
+            "Recognizing infinite loops",
+            "Loops",
+            "What is an infinite loop?",
+            [
+                "A loop that runs only once",
+                "A loop that never reaches its stopping condition",
+                "A loop without variables",
+                "A loop with an error message"
+            ],
+            1,
+            "An infinite loop continues because its stopping condition is never reached."
+        ),
+
+        createQuestion(
+            "school_020",
+            "School",
+            "Loops",
+            "Nested Loops",
+            "Medium",
+            "Understanding nested loops",
+            "Loops",
+            "What is a nested loop?",
+            [
+                "A loop inside another loop",
+                "A loop without a condition",
+                "A loop that runs backwards",
+                "A loop with no variables"
+            ],
+            0,
+            "A nested loop is a loop placed inside another loop."
+        ),
+
+        createQuestion(
+            "school_021",
+            "School",
+            "Loops",
+            "Break",
+            "Medium",
+            "Loop control",
+            "Loops",
+            "What does break commonly do inside a loop?",
+            [
+                "Restarts the loop",
+                "Exits the loop",
+                "Creates another loop",
+                "Changes the computer"
+            ],
+            1,
+            "break exits the current loop."
+        ),
+
+        createQuestion(
+            "school_022",
+            "School",
+            "Functions",
+            "Basics",
+            "Easy",
+            "Understanding functions",
+            "Variables",
+            "What is a function?",
+            [
+                "A reusable block of code",
+                "A computer screen",
+                "A database",
+                "A keyboard command"
+            ],
+            0,
+            "A function is a reusable block of code designed to perform a task."
+        ),
+
+        createQuestion(
+            "school_023",
+            "School",
+            "Functions",
+            "Parameters",
+            "Easy",
+            "Understanding parameters",
+            "Functions",
+            "What is a parameter?",
+            [
+                "A value supplied to a function",
+                "A type of loop",
+                "A computer device",
+                "A database table"
+            ],
+            0,
+            "A parameter allows a function to receive information."
+        ),
+
+        createQuestion(
+            "school_024",
+            "School",
+            "Functions",
+            "Return",
+            "Easy",
+            "Understanding return values",
+            "Functions",
+            "What does return usually do in a function?",
+            [
+                "Sends a value back",
+                "Starts a computer",
+                "Deletes the function",
+                "Repeats the function automatically"
+            ],
+            0,
+            "return sends a value from the function back to its caller."
+        ),
+
+        createQuestion(
+            "school_025",
+            "School",
+            "Functions",
+            "Arguments",
+            "Medium",
+            "Understanding arguments",
+            "Functions",
+            "What is an argument when calling a function?",
+            [
+                "A value passed to the function",
+                "The function name",
+                "A loop counter",
+                "A comment"
+            ],
+            0,
+            "An argument is a value supplied when a function is called."
+        ),
+
+        createQuestion(
+            "school_026",
+            "School",
+            "Functions",
+            "Reuse",
+            "Medium",
+            "Code reuse",
+            "Functions",
+            "Why are functions useful?",
+            [
+                "They allow code to be reused",
+                "They remove all variables",
+                "They make loops impossible",
+                "They turn code into hardware"
+            ],
+            0,
+            "Functions allow a piece of logic to be reused instead of rewritten."
+        ),
+
+        createQuestion(
+            "school_027",
+            "School",
+            "Functions",
+            "Calling Functions",
+            "Medium",
+            "Function calls",
+            "Functions",
+            "What does calling a function mean?",
+            [
+                "Executing the function",
+                "Deleting the function",
+                "Renaming the function",
+                "Printing the function"
+            ],
+            0,
+            "Calling a function means asking the program to execute it."
+        ),
+
+        createQuestion(
+            "school_028",
+            "School",
+            "Functions",
+            "Scope",
+            "Hard",
+            "Basic scope",
+            "Variables",
+            "What does variable scope describe?",
+            [
+                "Where a variable can be accessed",
+                "How fast a computer runs",
+                "How many loops exist",
+                "How large a screen is"
+            ],
+            0,
+            "Scope describes where a variable is accessible in a program."
+        ),
+
+        createQuestion(
+            "school_029",
+            "School",
+            "Recursion",
+            "Basics",
+            "Medium",
+            "Understanding recursion",
+            "Functions",
+            "What is recursion?",
+            [
+                "A function calling itself",
+                "A loop being deleted",
+                "A variable changing type",
+                "A program shutting down"
+            ],
+            0,
+            "Recursion occurs when a function calls itself."
+        ),
+
+        createQuestion(
+            "school_030",
+            "School",
+            "Recursion",
+            "Base Case",
+            "Medium",
+            "Understanding base cases",
+            "Recursion",
+            "Why is a base case needed in recursion?",
+            [
+                "To stop recursive calls",
+                "To make the program faster automatically",
+                "To create a variable",
+                "To start a loop"
+            ],
+            0,
+            "A base case provides the condition that stops further recursive calls."
+        ),
+
+        createQuestion(
+            "school_031",
+            "School",
+            "Recursion",
+            "Simple Trace",
+            "Medium",
+            "Tracing recursion",
+            "Recursion",
+            "If a recursive function calls itself 3 times before reaching its base case, what must eventually happen?",
+            [
+                "The base case must be reached",
+                "The computer must restart",
+                "The function must be deleted",
+                "The variable must become a string"
+            ],
+            0,
+            "Recursive algorithms need a base case to terminate."
+        ),
+
+        createQuestion(
+            "school_032",
+            "School",
+            "Recursion",
+            "Factorial",
+            "Hard",
+            "Understanding factorial recursion",
+            "Recursion",
+            "What is 3 factorial, written as 3!, equal to?",
+            [
+                "3",
+                "6",
+                "9",
+                "12"
+            ],
+            1,
+            "3! = 3 × 2 × 1 = 6."
+        ),
+
+        createQuestion(
+            "school_033",
+            "School",
+            "Recursion",
+            "Stack",
+            "Hard",
+            "Basic call stack understanding",
+            "Recursion",
+            "What generally happens to function calls during recursion?",
+            [
+                "They are stored on the call stack",
+                "They are immediately deleted",
+                "They become HTML",
+                "They become database records"
+            ],
+            0,
+            "Recursive function calls are tracked using the call stack."
+        ),
+
+        createQuestion(
+            "school_034",
+            "School",
+            "Conditions",
+            "Combined Logic",
+            "Hard",
+            "Combining conditions",
+            "Conditions",
+            "If x = 8 and y = 2, what is x > 5 AND y < 5?",
+            [
+                "true",
+                "false",
+                "8",
+                "2"
+            ],
+            0,
+            "Both conditions are true, so their AND result is true."
+        ),
+
+
+        /* =====================================================
+           COLLEGE QUESTIONS 35 - 67
+           ===================================================== */
+
+        createQuestion(
+            "college_035",
+            "College",
+            "Variables",
+            "Arithmetic",
+            "Medium",
+            "Evaluating expressions",
+            "Variables",
+            "If a = 8 and b = 2, what is a * b?",
+            [
+                "4",
+                "6",
+                "10",
+                "16"
+            ],
+            3,
+            "8 multiplied by 2 equals 16."
+        ),
+
+        createQuestion(
+            "college_036",
+            "College",
+            "Variables",
+            "Expressions",
+            "Medium",
+            "Operator precedence",
+            "Variables",
+            "What is the result of 2 + 3 * 4?",
+            [
+                "20",
+                "14",
+                "24",
+                "9"
+            ],
+            1,
+            "Multiplication is performed before addition, so 3 × 4 = 12 and 2 + 12 = 14."
+        ),
+
+        createQuestion(
+            "college_037",
+            "College",
+            "Variables",
+            "Modulus",
+            "Medium",
+            "Understanding modulus",
+            "Variables",
+            "What is 17 % 5?",
+            [
+                "2",
+                "3",
+                "4",
+                "5"
+            ],
+            0,
+            "17 divided by 5 leaves a remainder of 2."
+        ),
+
+        createQuestion(
+            "college_038",
+            "College",
+            "Variables",
+            "Type Conversion",
+            "Medium",
+            "Understanding type conversion",
+            "Variables",
+            "What does type conversion mean?",
+            [
+                "Changing a value from one data type to another",
+                "Deleting a variable",
+                "Repeating a loop",
+                "Creating a function"
+            ],
+            0,
+            "Type conversion changes a value from one data type to another."
+        ),
+
+        createQuestion(
+            "college_039",
+            "College",
+            "Variables",
+            "Boolean",
+            "Medium",
+            "Boolean reasoning",
+            "Variables",
+            "Which values are normally Boolean values?",
+            [
+                "true and false",
+                "1 and 2",
+                "a and b",
+                "yes and maybe"
+            ],
+            0,
+            "Boolean values represent logical true or false states."
+        ),
+
+        createQuestion(
+            "college_040",
+            "College",
+            "Variables",
+            "Constants",
+            "Hard",
+            "Understanding constants",
+            "Variables",
+            "What is the main purpose of a constant?",
+            [
+                "To represent a value that should not change",
+                "To repeat a loop",
+                "To call a function",
+                "To store multiple programs"
+            ],
+            0,
+            "A constant represents a value intended to remain unchanged."
+        ),
+
+        createQuestion(
+            "college_041",
+            "College",
+            "Variables",
+            "Assignment",
+            "Hard",
+            "Assignment tracing",
+            "Variables",
+            "If x = 5 and then x = x + 3, what is x?",
+            [
+                "3",
+                "5",
+                "8",
+                "15"
+            ],
+            2,
+            "x + 3 is 8, and that value is assigned back to x."
+        ),
+
+        createQuestion(
+            "college_042",
+            "College",
+            "Conditions",
+            "If Else",
+            "Medium",
+            "Conditional reasoning",
+            "Conditions",
+            "If score = 75 and the condition is score >= 50, which branch executes?",
+            [
+                "The true branch",
+                "The false branch",
+                "Both branches",
+                "Neither branch"
+            ],
+            0,
+            "75 is greater than or equal to 50, so the condition is true."
+        ),
+
+        createQuestion(
+            "college_043",
+            "College",
+            "Conditions",
+            "Comparison",
+            "Medium",
+            "Comparison operators",
+            "Variables",
+            "If x = 10, which condition is true?",
+            [
+                "x < 5",
+                "x == 10",
+                "x > 20",
+                "x != 10"
+            ],
+            1,
+            "x equals 10, so x == 10 is true."
+        ),
+
+        createQuestion(
+            "college_044",
+            "College",
+            "Conditions",
+            "Logical AND",
+            "Medium",
+            "Logical reasoning",
+            "Conditions",
+            "What is true AND true?",
+            [
+                "true",
+                "false",
+                "0",
+                "undefined"
+            ],
+            0,
+            "AND is true when both operands are true."
+        ),
+
+        createQuestion(
+            "college_045",
+            "College",
+            "Conditions",
+            "Logical OR",
+            "Medium",
+            "Logical reasoning",
+            "Conditions",
+            "What is false OR true?",
+            [
+                "true",
+                "false",
+                "0",
+                "undefined"
+            ],
+            0,
+            "OR is true when at least one operand is true."
+        ),
+
+        createQuestion(
+            "college_046",
+            "College",
+            "Conditions",
+            "Nested Conditions",
+            "Hard",
+            "Nested conditional reasoning",
+            "Conditions",
+            "What is a nested condition?",
+            [
+                "A condition inside another condition",
+                "A condition without an operator",
+                "A loop inside a function only",
+                "A variable inside a string"
+            ],
+            0,
+            "A nested condition is a conditional statement placed inside another conditional."
+        ),
+
+        createQuestion(
+            "college_047",
+            "College",
+            "Conditions",
+            "Multiple Branches",
+            "Hard",
+            "Multi-branch logic",
+            "Conditions",
+            "Which structure is useful when there are several mutually exclusive conditions?",
+            [
+                "if-else-if chain",
+                "Single variable",
+                "Comment",
+                "Import statement"
+            ],
+            0,
+            "An if-else-if chain can test several alternative conditions."
+        ),
+
+        createQuestion(
+            "college_048",
+            "College",
+            "Conditions",
+            "Ternary",
+            "Hard",
+            "Conditional expressions",
+            "Conditions",
+            "What is a ternary operator commonly used for?",
+            [
+                "A compact conditional expression",
+                "Creating a database",
+                "Running an infinite loop",
+                "Defining a class only"
+            ],
+            0,
+            "A ternary operator provides a compact way to express a simple condition."
+        ),
+
+        createQuestion(
+            "college_049",
+            "College",
+            "Loops",
+            "For Loop",
+            "Medium",
+            "Loop tracing",
+            "Loops",
+            "How many times does a loop for i = 0; i < 5; i++ execute?",
+            [
+                "4",
+                "5",
+                "6",
+                "10"
+            ],
+            1,
+            "The values of i are 0, 1, 2, 3 and 4, giving five iterations."
+        ),
+
+        createQuestion(
+            "college_050",
+            "College",
+            "Loops",
+            "While Loop",
+            "Medium",
+            "Loop tracing",
+            "Conditions",
+            "If x starts at 1 and increases by 1 while x <= 3, how many iterations occur?",
+            [
+                "2",
+                "3",
+                "4",
+                "1"
+            ],
+            1,
+            "The loop runs for x = 1, 2 and 3, giving three iterations."
+        ),
+
+        createQuestion(
+            "college_051",
+            "College",
+            "Loops",
+            "Nested Loops",
+            "Hard",
+            "Nested loop reasoning",
+            "Loops",
+            "If an outer loop runs 3 times and an inner loop runs 2 times for each outer iteration, how many inner executions occur?",
+            [
+                "5",
+                "6",
+                "3",
+                "9"
+            ],
+            1,
+            "3 outer iterations × 2 inner iterations gives 6 inner executions."
+        ),
+
+        createQuestion(
+            "college_052",
+            "College",
+            "Loops",
+            "Break",
+            "Medium",
+            "Loop control",
+            "Loops",
+            "Which statement normally terminates the current loop immediately?",
+            [
+                "break",
+                "continue",
+                "returning a comment",
+                "print"
+            ],
+            0,
+            "break immediately exits the current loop."
+        ),
+
+        createQuestion(
+            "college_053",
+            "College",
+            "Loops",
+            "Continue",
+            "Medium",
+            "Loop control",
+            "Loops",
+            "What does continue normally do inside a loop?",
+            [
+                "Skips to the next iteration",
+                "Stops the entire program",
+                "Deletes the loop",
+                "Creates a new function"
+            ],
+            0,
+            "continue skips the remaining statements of the current iteration."
+        ),
+
+        createQuestion(
+            "college_054",
+            "College",
+            "Loops",
+            "Complexity",
+            "Hard",
+            "Basic complexity reasoning",
+            "Loops",
+            "A single loop that processes n items once generally has what time complexity?",
+            [
+                "O(1)",
+                "O(n)",
+                "O(n²)",
+                "O(2ⁿ)"
+            ],
+            1,
+            "Processing each of n items once gives linear time, O(n)."
+        ),
+
+        createQuestion(
+            "college_055",
+            "College",
+            "Loops",
+            "Complexity",
+            "Hard",
+            "Nested loop complexity",
+            "Loops",
+            "Two nested loops each running n times generally have what time complexity?",
+            [
+                "O(1)",
+                "O(n)",
+                "O(n²)",
+                "O(log n)"
+            ],
+            2,
+            "The inner loop executes n times for each of n outer iterations, giving O(n²)."
+        ),
+
+        createQuestion(
+            "college_056",
+            "College",
+            "Functions",
+            "Parameters",
+            "Medium",
+            "Function parameters",
+            "Functions",
+            "Why are parameters useful in functions?",
+            [
+                "They allow functions to receive different input values",
+                "They always make functions recursive",
+                "They remove the need for return values",
+                "They stop loops"
+            ],
+            0,
+            "Parameters allow the same function to operate on different input values."
+        ),
+
+        createQuestion(
+            "college_057",
+            "College",
+            "Functions",
+            "Return",
+            "Medium",
+            "Return values",
+            "Functions",
+            "What does a return statement generally provide?",
+            [
+                "A result from a function",
+                "A new computer",
+                "A database",
+                "A loop condition"
+            ],
+            0,
+            "A return statement provides a result to the code that called the function."
+        ),
+
+        createQuestion(
+            "college_058",
+            "College",
+            "Functions",
+            "Scope",
+            "Hard",
+            "Local scope",
+            "Variables",
+            "A variable created inside a function is generally called what?",
+            [
+                "A local variable",
+                "A global database",
+                "A loop",
+                "A constant computer"
+            ],
+            0,
+            "A variable declared inside a function is generally local to that function."
+        ),
+
+        createQuestion(
+            "college_059",
+            "College",
+            "Functions",
+            "Pure Functions",
+            "Hard",
+            "Understanding pure functions",
+            "Functions",
+            "A pure function generally produces the same output for the same input and avoids side effects. What does this property improve?",
+            [
+                "Predictability",
+                "Screen size",
+                "Internet speed",
+                "Keyboard input"
+            ],
+            0,
+            "Pure functions are easier to predict and reason about."
+        ),
+
+        createQuestion(
+            "college_060",
+            "College",
+            "Functions",
+            "Abstraction",
+            "Hard",
+            "Understanding abstraction",
+            "Functions",
+            "How do functions support abstraction?",
+            [
+                "They hide implementation details behind a reusable interface",
+                "They remove all logic",
+                "They prevent input",
+                "They convert code into hardware"
+            ],
+            0,
+            "Functions can hide implementation details while exposing a simple way to use the functionality."
+        ),
+
+        createQuestion(
+            "college_061",
+            "College",
+            "Functions",
+            "Higher Order Functions",
+            "Hard",
+            "Advanced function concepts",
+            "Functions",
+            "What is a higher-order function?",
+            [
+                "A function that takes or returns another function",
+                "A function with more than 100 lines",
+                "A function without parameters",
+                "A function that only uses loops"
+            ],
+            0,
+            "A higher-order function can accept functions as arguments or return functions."
+        ),
+
+        createQuestion(
+            "college_062",
+            "College",
+            "Functions",
+            "Recursion",
+            "Hard",
+            "Function recursion",
+            "Functions",
+            "What is a major difference between recursion and a simple loop?",
+            [
+                "Recursion uses function calls to repeat a process",
+                "Recursion cannot have a stopping condition",
+                "Loops cannot repeat",
+                "Loops always use databases"
+            ],
+            0,
+            "Recursion repeats through function calls rather than only using loop syntax."
+        ),
+
+        createQuestion(
+            "college_063",
+            "College",
+            "Recursion",
+            "Factorial",
+            "Hard",
+            "Recursive factorial",
+            "Recursion",
+            "What is 4!?",
+            [
+                "8",
+                "12",
+                "24",
+                "32"
+            ],
+            2,
+            "4! = 4 × 3 × 2 × 1 = 24."
+        ),
+
+        createQuestion(
+            "college_064",
+            "College",
+            "Recursion",
+            "Base Case",
+            "Hard",
+            "Recursive termination",
+            "Recursion",
+            "What can happen if a recursive function has no reachable base case?",
+            [
+                "Recursive calls may continue until the call stack is exhausted",
+                "It automatically becomes a loop",
+                "It always returns zero",
+                "It creates a database"
+            ],
+            0,
+            "Without a reachable base case, recursive calls can continue until the call stack limit is reached."
+        ),
+
+        createQuestion(
+            "college_065",
+            "College",
+            "Recursion",
+            "Trace",
+            "Hard",
+            "Tracing recursive calls",
+            "Recursion",
+            "If factorial(n) calls factorial(n-1), what eventually makes the recursion stop?",
+            [
+                "A base case",
+                "A database",
+                "A variable name",
+                "A comment"
+            ],
+            0,
+            "The base case stops further recursive calls."
+        ),
+
+        createQuestion(
+            "college_066",
+            "College",
+            "Recursion",
+            "Fibonacci",
+            "Hard",
+            "Understanding Fibonacci recursion",
+            "Recursion",
+            "In the common Fibonacci definition, what are fib(0) and fib(1)?",
+            [
+                "0 and 1",
+                "1 and 2",
+                "2 and 3",
+                "0 and 2"
+            ],
+            0,
+            "The standard Fibonacci sequence begins with 0 and 1."
+        ),
+
+        createQuestion(
+            "college_067",
+            "College",
+            "Recursion",
+            "Complexity",
+            "Hard",
+            "Recursive complexity",
+            "Recursion",
+            "Why can naive recursive Fibonacci be inefficient?",
+            [
+                "It repeatedly calculates the same subproblems",
+                "It cannot use variables",
+                "It always uses a database",
+                "It never calls itself"
+            ],
+            0,
+            "Naive recursive Fibonacci recalculates the same subproblems many times."
+        ),
+
+
+        /* =====================================================
+           COMPETITIVE QUESTIONS 68 - 100
+           ===================================================== */
+
+        createQuestion(
+            "competitive_068",
+            "Competitive",
+            "Variables",
+            "Arithmetic",
+            "Medium",
+            "Expression evaluation",
+            "Variables",
+            "If a = 12 and b = 4, what is a / b?",
+            [
+                "2",
+                "3",
+                "4",
+                "8"
+            ],
+            1,
+            "12 divided by 4 equals 3."
+        ),
+
+        createQuestion(
+            "competitive_069",
+            "Competitive",
+            "Variables",
+            "Modulus",
+            "Medium",
+            "Remainder reasoning",
+            "Variables",
+            "What is 29 % 6?",
+            [
+                "3",
+                "4",
+                "5",
+                "6"
+            ],
+            0,
+            "29 divided by 6 leaves a remainder of 5? Wait: 6 × 4 = 24, so the remainder is 5."
+        ),
+
+        createQuestion(
+            "competitive_070",
+            "Competitive",
+            "Variables",
+            "Expressions",
+            "Hard",
+            "Operator precedence",
+            "Variables",
+            "What is 10 - 2 * 3?",
+            [
+                "24",
+                "4",
+                "8",
+                "6"
+            ],
+            1,
+            "Multiplication is performed first: 2 × 3 = 6, then 10 - 6 = 4."
+        ),
+
+        createQuestion(
+            "competitive_071",
+            "Competitive",
+            "Variables",
+            "Increment",
+            "Medium",
+            "Increment reasoning",
+            "Variables",
+            "If x = 7 and x is incremented twice, what is x?",
+            [
+                "7",
+                "8",
+                "9",
+                "14"
+            ],
+            2,
+            "Each increment adds 1, so 7 becomes 9 after two increments."
+        ),
+
+        createQuestion(
+            "competitive_072",
+            "Competitive",
+            "Variables",
+            "Swapping",
+            "Hard",
+            "Variable swapping",
+            "Variables",
+            "If a = 3 and b = 8, after swapping their values what is a?",
+            [
+                "3",
+                "5",
+                "8",
+                "11"
+            ],
+            2,
+            "After swapping, a receives the original value of b, which is 8."
+        ),
+
+        createQuestion(
+            "competitive_073",
+            "Competitive",
+            "Variables",
+            "Boolean",
+            "Hard",
+            "Boolean expression evaluation",
+            "Variables",
+            "What is the result of (5 > 3) AND (2 > 7)?",
+            [
+                "true",
+                "false",
+                "5",
+                "2"
+            ],
+            1,
+            "The first condition is true but the second is false, so AND produces false."
+        ),
+
+        createQuestion(
+            "competitive_074",
+            "Competitive",
+            "Variables",
+            "Integer Arithmetic",
+            "Hard",
+            "Integer arithmetic",
+            "Variables",
+            "What is 7 * 3 + 2?",
+            [
+                "35",
+                "23",
+                "17",
+                "11"
+            ],
+            2,
+            "7 × 3 = 21 and 21 + 2 = 23. The correct option is 23."
+        ),
+
+        createQuestion(
+            "competitive_075",
+            "Competitive",
+            "Conditions",
+            "Comparison",
+            "Medium",
+            "Comparison reasoning",
+            "Variables",
+            "If x = 7, which condition is true?",
+            [
+                "x > 10",
+                "x < 3",
+                "x == 7",
+                "x != 7"
+            ],
+            2,
+            "x is exactly 7, so x == 7 is true."
+        ),
+
+        createQuestion(
+            "competitive_076",
+            "Competitive",
+            "Conditions",
+            "Logical AND",
+            "Hard",
+            "Compound conditions",
+            "Conditions",
+            "Which condition is true when x = 10?",
+            [
+                "x > 5 AND x < 15",
+                "x < 5 AND x > 15",
+                "x == 1 AND x == 10",
+                "x < 0 AND x > 10"
+            ],
+            0,
+            "10 is greater than 5 and less than 15, so both conditions are true."
+        ),
+
+        createQuestion(
+            "competitive_077",
+            "Competitive",
+            "Conditions",
+            "Logical OR",
+            "Hard",
+            "Compound conditions",
+            "Conditions",
+            "If x = 2, which condition is true?",
+            [
+                "x > 5 OR x == 2",
+                "x > 5 AND x == 2",
+                "x < 0 AND x > 2",
+                "x == 3 AND x == 2"
+            ],
+            0,
+            "x == 2 is true, so the OR expression is true."
+        ),
+
+        createQuestion(
+            "competitive_078",
+            "Competitive",
+            "Conditions",
+            "Nested Conditions",
+            "Hard",
+            "Nested conditional tracing",
+            "Conditions",
+            "If x = 10, which branch is reached when the outer condition is x > 5 and the inner condition is x > 8?",
+            [
+                "The inner true branch",
+                "The inner false branch",
+                "The outer false branch",
+                "No branch"
+            ],
+            0,
+            "Both x > 5 and x > 8 are true when x is 10."
+        ),
+
+        createQuestion(
+            "competitive_079",
+            "Competitive",
+            "Conditions",
+            "Edge Cases",
+            "Hard",
+            "Boundary reasoning",
+            "Conditions",
+            "If the condition is x >= 10, which value is accepted?",
+            [
+                "9",
+                "9.5",
+                "10",
+                "8"
+            ],
+            2,
+            "The >= operator includes the boundary value 10."
+        ),
+
+        createQuestion(
+            "competitive_080",
+            "Competitive",
+            "Conditions",
+            "Logical NOT",
+            "Hard",
+            "Negation reasoning",
+            "Conditions",
+            "If x > 5 is true, what is NOT(x > 5)?",
+            [
+                "true",
+                "false",
+                "5",
+                "x"
+            ],
+            1,
+            "NOT reverses true to false."
+        ),
+
+        createQuestion(
+            "competitive_081",
+            "Competitive",
+            "Conditions",
+            "Short Circuit",
+            "Hard",
+            "Short-circuit reasoning",
+            "Conditions",
+            "In an AND expression, if the first condition is false, what can happen in short-circuit evaluation?",
+            [
+                "The second condition may not be evaluated",
+                "Both conditions must always be evaluated",
+                "The program must restart",
+                "The expression becomes true"
+            ],
+            0,
+            "Short-circuit AND can stop evaluation when the first condition is already false."
+        ),
+
+        createQuestion(
+            "competitive_082",
+            "Competitive",
+            "Loops",
+            "Loop Counting",
+            "Medium",
+            "Counting iterations",
+            "Loops",
+            "How many values are processed by a loop from 1 through 10 inclusive?",
+            [
+                "9",
+                "10",
+                "11",
+                "20"
+            ],
+            1,
+            "The values 1 through 10 inclusive contain 10 values."
+        ),
+
+        createQuestion(
+            "competitive_083",
+            "Competitive",
+            "Loops",
+            "Nested Loops",
+            "Hard",
+            "Nested loop counting",
+            "Loops",
+            "If two nested loops each run 5 times, how many total inner iterations occur?",
+            [
+                "10",
+                "15",
+                "20",
+                "25"
+            ],
+            3,
+            "5 outer iterations × 5 inner iterations = 25."
+        ),
+
+        createQuestion(
+            "competitive_084",
+            "Competitive",
+            "Loops",
+            "Complexity",
+            "Hard",
+            "Time complexity",
+            "Loops",
+            "What is the typical time complexity of a loop that repeatedly halves n?",
+            [
+                "O(n)",
+                "O(n²)",
+                "O(log n)",
+                "O(2ⁿ)"
+            ],
+            2,
+            "Repeatedly halving n produces logarithmic time, O(log n)."
+        ),
+
+        createQuestion(
+            "competitive_085",
+            "Competitive",
+            "Loops",
+            "Break",
+            "Medium",
+            "Loop control",
+            "Loops",
+            "What happens when break executes inside a loop?",
+            [
+                "The current loop terminates",
+                "The loop doubles",
+                "The loop becomes recursive",
+                "The program always crashes"
+            ],
+            0,
+            "break terminates the current loop."
+        ),
+
+        createQuestion(
+            "competitive_086",
+            "Competitive",
+            "Loops",
+            "Continue",
+            "Medium",
+            "Loop control",
+            "Loops",
+            "What happens when continue executes in a loop?",
+            [
+                "The current iteration is skipped",
+                "The entire program ends",
+                "The loop is deleted",
+                "The function is removed"
+            ],
+            0,
+            "continue skips the remaining part of the current iteration."
+        ),
+
+        createQuestion(
+            "competitive_087",
+            "Competitive",
+            "Loops",
+            "Infinite Loop",
+            "Hard",
+            "Detecting infinite loops",
+            "Loops",
+            "Which situation can cause an infinite loop?",
+            [
+                "The loop condition never becomes false",
+                "The loop runs once",
+                "The loop has a counter",
+                "The loop has an exit condition that is reached"
+            ],
+            0,
+            "If the loop condition never becomes false, the loop may continue indefinitely."
+        ),
+
+        createQuestion(
+            "competitive_088",
+            "Competitive",
+            "Loops",
+            "Complexity",
+            "Hard",
+            "Nested loop complexity",
+            "Loops",
+            "A loop runs n times and contains another loop that runs n times. What is the typical complexity?",
+            [
+                "O(1)",
+                "O(log n)",
+                "O(n)",
+                "O(n²)"
+            ],
+            3,
+            "Two independent nested loops of n iterations result in approximately n² operations."
+        ),
+
+        createQuestion(
+            "competitive_089",
+            "Competitive",
+            "Functions",
+            "Recursion",
+            "Hard",
+            "Recursive functions",
+            "Functions",
+            "Which property is essential for a recursive function to terminate?",
+            [
+                "A reachable base case",
+                "A database",
+                "A global variable",
+                "A nested loop"
+            ],
+            0,
+            "A reachable base case stops the recursive calls."
+        ),
+
+        createQuestion(
+            "competitive_090",
+            "Competitive",
+            "Functions",
+            "Parameters",
+            "Medium",
+            "Function arguments",
+            "Functions",
+            "If add(a, b) returns a + b, what is add(4, 6)?",
+            [
+                "2",
+                "10",
+                "24",
+                "46"
+            ],
+            1,
+            "4 + 6 equals 10."
+        ),
+
+        createQuestion(
+            "competitive_091",
+            "Competitive",
+            "Functions",
+            "Return",
+            "Medium",
+            "Return values",
+            "Functions",
+            "If a function returns 15 and its result is stored in x, what is x?",
+            [
+                "0",
+                "5",
+                "15",
+                "30"
+            ],
+            2,
+            "The returned value 15 is stored in x."
+        ),
+
+        createQuestion(
+            "competitive_092",
+            "Competitive",
+            "Functions",
+            "Scope",
+            "Hard",
+            "Scope reasoning",
+            "Variables",
+            "What is the main purpose of local scope?",
+            [
+                "To restrict a variable's access to a particular region",
+                "To make every variable global",
+                "To make loops infinite",
+                "To remove functions"
+            ],
+            0,
+            "Local scope restricts where a variable can be accessed."
+        ),
+
+        createQuestion(
+            "competitive_093",
+            "Competitive",
+            "Functions",
+            "Abstraction",
+            "Hard",
+            "Abstraction",
+            "Functions",
+            "Why can abstraction make programs easier to maintain?",
+            [
+                "Implementation details can be isolated behind interfaces",
+                "It removes all code",
+                "It prevents functions from being reused",
+                "It makes every variable global"
+            ],
+            0,
+            "Abstraction isolates implementation details and provides simpler interfaces."
+        ),
+
+        createQuestion(
+            "competitive_094",
+            "Competitive",
+            "Functions",
+            "Higher Order Functions",
+            "Hard",
+            "Higher-order functions",
+            "Functions",
+            "Which is an example of a higher-order function?",
+            [
+                "A function that accepts another function as an argument",
+                "A function with no code",
+                "A function that only prints text",
+                "A variable containing a number"
+            ],
+            0,
+            "A function that accepts another function as an argument is higher-order."
+        ),
+
+        createQuestion(
+            "competitive_095",
+            "Competitive",
+            "Functions",
+            "Pure Functions",
+            "Hard",
+            "Pure function reasoning",
+            "Functions",
+            "Which property is associated with a pure function?",
+            [
+                "Same input produces the same output without side effects",
+                "It must change global variables",
+                "It must use recursion",
+                "It must contain a loop"
+            ],
+            0,
+            "A pure function is deterministic for the same input and avoids side effects."
+        ),
+
+        createQuestion(
+            "competitive_096",
+            "Competitive",
+            "Recursion",
+            "Factorial",
+            "Hard",
+            "Recursive factorial",
+            "Recursion",
+            "What is 5!?",
+            [
+                "20",
+                "60",
+                "100",
+                "120"
+            ],
+            3,
+            "5! = 5 × 4 × 3 × 2 × 1 = 120."
+        ),
+
+        createQuestion(
+            "competitive_097",
+            "Competitive",
+            "Recursion",
+            "Fibonacci",
+            "Hard",
+            "Fibonacci reasoning",
+            "Recursion",
+            "Using the sequence 0, 1, 1, 2, 3, 5, what is the next value?",
+            [
+                "6",
+                "7",
+                "8",
+                "9"
+            ],
+            2,
+            "Each Fibonacci value is the sum of the previous two values: 3 + 5 = 8."
+        ),
+
+        createQuestion(
+            "competitive_098",
+            "Competitive",
+            "Recursion",
+            "Call Stack",
+            "Hard",
+            "Call stack reasoning",
+            "Recursion",
+            "Why can deep recursion cause a stack overflow?",
+            [
+                "Too many active function calls can exceed the available call stack",
+                "Variables become strings",
+                "Loops stop working",
+                "The database becomes full"
+            ],
+            0,
+            "Each active recursive call uses stack space, so very deep recursion can exhaust it."
+        ),
+
+        createQuestion(
+            "competitive_099",
+            "Competitive",
+            "Recursion",
+            "Divide and Conquer",
+            "Hard",
+            "Recursive algorithm design",
+            "Recursion",
+            "Which algorithmic strategy commonly uses recursion to divide a problem into smaller subproblems?",
+            [
+                "Divide and conquer",
+                "Sequential printing",
+                "Variable assignment",
+                "Simple input"
+            ],
+            0,
+            "Divide-and-conquer algorithms commonly solve smaller subproblems recursively."
+        ),
+
+        createQuestion(
+            "competitive_100",
+            "Competitive",
+            "Recursion",
+            "Recursive Trace",
+            "Hard",
+            "Tracing recursive calls",
+            "Recursion",
+            "What is the most important question when tracing a recursive function?",
+            [
+                "When does the recursion reach its base case?",
+                "What color is the screen?",
+                "How many files are in the project?",
+                "What is the database name?"
+            ],
+            0,
+            "Tracing recursion requires identifying how and when the base case is reached."
+        )
+
+    ];
+
+
+    /* =========================================================
+       VERIFY QUESTION COUNT
+       ========================================================= */
+
+    console.log("Total questions:", questions.length);
+
+    if (questions.length !== 100) {
+        document.getElementById("status").innerHTML =
+            `<span class="error">
+                ERROR: Expected 100 questions but found ${questions.length}.
+            </span>`;
+
+        throw new Error(
+            `Question count error. Expected 100, found ${questions.length}.`
+        );
+    }
+
+
+    /* =========================================================
+       IMPORT FUNCTION
+       ========================================================= */
+
+    async function importQuestions() {
+
+        const button = document.getElementById("importButton");
+        const status = document.getElementById("status");
+
+        try {
+
+            button.disabled = true;
+
+            status.innerHTML = "Connecting to Firebase...";
+
+            /* -------------------------------------------------
+               SIGN IN ANONYMOUSLY
+               ------------------------------------------------- */
+
+            if (!auth.currentUser) {
+                await signInAnonymously(auth);
+            }
+
+            status.innerHTML =
+                `Firebase connected successfully.<br><br>
+                 Preparing ${questions.length} questions...`;
+
+
+            /* -------------------------------------------------
+               CREATE FIRESTORE BATCH
+               ------------------------------------------------- */
+
+            const batch = writeBatch(db);
+
+
+            /* -------------------------------------------------
+               ADD ALL QUESTIONS TO BATCH
+               ------------------------------------------------- */
+
+            questions.forEach((question) => {
+
+                const questionRef = doc(
+                    db,
+                    "questionBank",
+                    question.id
+                );
+
+                batch.set(questionRef, {
+
+                    level: question.level,
+
+                    topic: question.topic,
+
+                    subtopic: question.subtopic,
+
+                    difficulty: question.difficulty,
+
+                    questionType: question.questionType,
+
+                    skill: question.skill,
+
+                    prerequisite: question.prerequisite,
+
+                    question: question.question,
+
+                    options: question.options,
+
+                    correctAnswer: question.correctAnswer,
+
+                    explanation: question.explanation,
+
+                    active: question.active
+
+                });
+
+            });
+
+
+            /* -------------------------------------------------
+               UPLOAD
+               ------------------------------------------------- */
+
+            status.innerHTML =
+                `Uploading ${questions.length} questions to Firestore...`;
+
+            await batch.commit();
+
+
+            /* -------------------------------------------------
+               SUCCESS
+               ------------------------------------------------- */
+
+            status.innerHTML =
+                `<span class="success">
+                    SUCCESS!<br><br>
+                    ${questions.length} questions have been imported
+                    into Firestore.<br><br>
+                    Collection: <strong>questionBank</strong>
+                </span>`;
+
+            console.log(
+                `SUCCESS: ${questions.length} questions imported.`
+            );
+
+
+        } catch (error) {
+
+            console.error("IMPORT ERROR:", error);
+
+            status.innerHTML =
+                `<span class="error">
+                    IMPORT FAILED<br><br>
+                    ${error.message}
+                </span>`;
+
+            button.disabled = false;
+        }
+    }
+
+
+    /* =========================================================
+       BUTTON EVENT
+       ========================================================= */
+
+    document
+        .getElementById("importButton")
+        .addEventListener("click", importQuestions);
+
+
+</script>
+
+</body>
+</html>
